@@ -1,5 +1,12 @@
 import requests
 from bs4 import BeautifulSoup
+import schedule
+from datetime import datetime
+import time
+import json
+from dotenv import load_dotenv
+import os
+from Database import Database
 
 # Site 1: https://br.ign.com/pc/
 #Informações extraídas: Titulo,link e imagem
@@ -7,6 +14,11 @@ from bs4 import BeautifulSoup
 #Informações extraídas: Titulo e link
 
 class Clawler:
+
+    def __init__(self):
+        load_dotenv()
+        self.db = Database()
+
     def request_data(self, url: str):
         response = requests.get(url)
         soup = BeautifulSoup(response.text, "html.parser")
@@ -20,7 +32,6 @@ class Clawler:
 
         recent_news = raw_IGN.find_all("div", {"class": "t"})
 
-        all_data = []
         for news in recent_news:
 
             #Extraindo o link, titulo e a imgagem
@@ -31,21 +42,20 @@ class Clawler:
             data = {
                 "Title": title_image.attrs["alt"],
                 "Image": title_image.attrs["data-src"],
-                "link": link.attrs["href"]
+                "link": link.attrs["href"],
+                "Date": str(datetime.now())
             }
-            all_data.append(data)
 
-            print(data)
+            New_news = self.db.insert(data)
 
 #Função para extrair do site 2
-    def extract_from_ADRENALINE(self):
-        raw_adrenaline = self.request_data("https://www.adrenaline.com.br/games/pc-games/")
+    def extract_from_ADRENALINE(self, page: int = 1):
+        raw_adrenaline = self.request_data(f"https://www.adrenaline.com.br/games/pc-games/page/{page}/")
 
         # Redução das informações para pegar o que vai ser extraído
 
         recent_news = raw_adrenaline.find_all("article", {"class": "feed"})
 
-        all_data = []
         for news in recent_news:
 
             # Extraindo o link e titulo
@@ -55,12 +65,26 @@ class Clawler:
 
             data = {
                 "Title": title["title"],
-                "link": link.attrs["href"]
+                "link": link.attrs["href"],
+                "Date": str(datetime.now())
             }
-            all_data.append(data)
 
-            print(data)
+            New_news = self.db.insert(data)
+
+#Função para selecionar páginas
+    def execute(self, num_page: int = 3):
+        for page in range(1, num_page):
+            self.extract_from_ADRENALINE(page)
+
 if __name__ == "__main__":
     crawler = Clawler()
-    crawler.extract_from_IGN()
-    crawler.extract_from_ADRENALINE()
+    crawler.execute(1)
+
+    def job():
+        print("\n Execute_job Time: {}".format(str(datetime.now())))
+        crawler.extract_from_IGN()
+        crawler.execute()
+
+    schedule.every(2).minutes.do(job)
+    while True:
+        schedule.run_pending()
