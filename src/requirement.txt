@@ -1,2 +1,6 @@
-beautifulsoup4==4.12.2
-soupsieve==2.5
+beautifulsoup4
+soupsieve
+pymongo
+python-dotenv
+requests
+schedule
