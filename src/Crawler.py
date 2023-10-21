@@ -7,6 +7,7 @@ import json
 from dotenv import load_dotenv
 import os
 from Database import Database
+from Bot import BOT
 
 # Site 1: https://br.ign.com/pc/
 #Informações extraídas: Titulo,link e imagem
@@ -18,6 +19,7 @@ class Clawler:
     def __init__(self):
         load_dotenv()
         self.db = Database()
+        self.bot = BOT()
 
     def request_data(self, url: str):
         response = requests.get(url)
@@ -42,11 +44,13 @@ class Clawler:
             data = {
                 "Title": title_image.attrs["alt"],
                 "Image": title_image.attrs["data-src"],
-                "link": link.attrs["href"],
+                "Link": link.attrs["href"],
                 "Date": str(datetime.now())
             }
 
-            New_news = self.db.insert(data)
+            response = self.db.insert(data)
+            if response is not None:
+                self.bot.post(response)
 
 #Função para extrair do site 2
     def extract_from_ADRENALINE(self, page: int = 1):
@@ -65,11 +69,13 @@ class Clawler:
 
             data = {
                 "Title": title["title"],
-                "link": link.attrs["href"],
+                "Link": link.attrs["href"],
                 "Date": str(datetime.now())
             }
 
-            New_news = self.db.insert(data)
+            response = self.db.insert(data)
+            if response is not None:
+                self.bot.post(response)
 
 #Função para selecionar páginas
     def execute(self, num_page: int = 3):
@@ -85,6 +91,6 @@ if __name__ == "__main__":
         crawler.extract_from_IGN()
         crawler.execute()
 
-    schedule.every(2).minutes.do(job)
+    schedule.every(0).minutes.do(job)
     while True:
         schedule.run_pending()
