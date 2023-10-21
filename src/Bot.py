@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 import os
 import gdown
 
+
 class BOT:
 
     def __init__(self):
@@ -14,11 +15,11 @@ class BOT:
         bearer_token = os.getenv("BEARER_TOKEN")
 
         self.client = tweepy.Client(
+            bearer_token=r"{}".format(bearer_token),
             consumer_key=consumer_key,
             consumer_secret=consumer_secret,
             access_token=access_token,
-            access_token_secret=access_secret,
-            bearer_token=bearer_token
+            access_token_secret=access_secret
         )
 
         auth = tweepy.OAuth1UserHandler(consumer_key, consumer_secret)
@@ -26,20 +27,23 @@ class BOT:
             access_token,
             access_secret
         )
-
         self.api = tweepy.API(auth)
+
 
     def post(self, data: dict):
         try:
             image_link = data["Image"]
-            media = None
 
-            if image_link != ":":
+            media = None
+            if image_link != "":
                 path = "/tmp/{}.jpg".format(str(data["Date"]))
                 gdown.download(image_link, path)
                 media = self.api.media_upload(filename=path)
 
-            post = "{}\n\nLink: {}".format(data["Title"], image_link)
+            post = "{}\n\nLink: {}".format(
+                data["Title"],
+                data["link"]
+            )
 
             if media is not None:
                 self.client.create_tweet(text=post, media_ids=[media.media_id])
@@ -50,3 +54,7 @@ class BOT:
         except Exception as e:
             print(str(e))
             return False
+
+
+
+

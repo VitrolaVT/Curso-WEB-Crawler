@@ -44,7 +44,7 @@ class Clawler:
             data = {
                 "Title": title_image.attrs["alt"],
                 "Image": title_image.attrs["data-src"],
-                "Link": link.attrs["href"],
+                "link": link.attrs["href"],
                 "Date": str(datetime.now())
             }
 
@@ -69,13 +69,14 @@ class Clawler:
 
             data = {
                 "Title": title["title"],
-                "Link": link.attrs["href"],
+                "link": link.attrs["href"],
                 "Date": str(datetime.now())
             }
 
             response = self.db.insert(data)
             if response is not None:
                 self.bot.post(response)
+
 
 #Função para selecionar páginas
     def execute(self, num_page: int = 3):
